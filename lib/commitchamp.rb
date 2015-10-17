@@ -14,29 +14,45 @@ module Commitchamp
     end
 
     def run
-      sort_another = nil
-      until sort_another == 'N' do
-        session = GitHubStuff.new(get_auth_token)
+      sort_another = "F"
+      session = GitHubStuff.new(get_auth_token)
+      until sort_another == "Q" do
+        until ["S","F","Q"].include?(sort_another) do
+          puts "Sorry. I don't understand."
+          puts "Would you like to (S)ort differently, (F)etch another repo, or (Q)uit?"
+        end
         session.get_repo_info
         contributions = session.get_repo_contributions
         author_info = compile_repo_contributions(contributions)
-        sort_repo_contributions(author_info)
-        binding.pry
-        puts "Would you like to get another list of contributions?"
-        puts "Enter \"N\" if no, or any other key for yes."
+        author_info = sort_repo_contributions(author_info)
+        puts_repo_contributions(author_info)
+        puts "Would you like to (S)ort differently, (F)etch another repo, or (Q)uit?"
         sort_another = gets.chomp.upcase
+        until sort_another != "S"
+          author_info = sort_repo_contributions(author_info)
+          puts_repo_contributions(author_info)
+          puts "Would you like to (S)ort differently, (F)etch another repo, or (Q)uit?"
+          sort_another = gets.chomp.upcase
+        end
+
       end
 
     end
 
     private
 
+    def puts_repo_contributions(author_info)
+      puts "\n\nUsername             Additions  Deletions    Changes"
+      author_info.each do |author|
+        printf("%-20s %9d  %9d  %9d \n", author[:author], author[:a], author[:d], author[:c])
+      end
+    end
+
     def sort_repo_contributions(author_info)
       puts "Hacking successful! How would you like to sort the thing?"
       puts "(A)dditions, (D)eletions, (C)hanges, or (T)otal commits?"
       sort_by = gets.chomp.downcase.to_sym
       author_info.sort_by{ |a| a[sort_by]}
-      binding.pry
     end
 
     def compile_repo_contributions(contributions)

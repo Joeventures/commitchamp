@@ -25,14 +25,5 @@ module Commitchamp
         :headers => @auth)
     end
 
-    def sort_repo_contributions
-      # prompt for what to sort by
-      # sort the repo contributions
-      # return a hash of the contributions, properly sorted
-    end
-
-    def show_sorted_repo_contributions
-      # puts the sorted list of contributions
-    end
   end
 end
