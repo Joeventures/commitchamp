@@ -14,42 +14,31 @@ module Commitchamp
     end
 
     def run
-      sort_another = "F"
       session = GitHubStuff.new(get_auth_token)
-      until sort_another == "Q" do
-        until ["S","F","Q"].include?(sort_another) do
-          puts "Sorry. I don't understand."
-          puts "Would you like to (S)ort differently, (F)etch another repo, or (Q)uit?"
-        end
-        session.get_repo_info
-        contributions = session.get_repo_contributions
+      session.get_repo_info
+      session.get_owner_repos if session.repo_name[0].empty?
+      session.repo_name.each do |repo| contributions = session.get_repo_contributions(repo)
         author_info = compile_repo_contributions(contributions)
-        author_info = sort_repo_contributions(author_info)
-        puts_repo_contributions(author_info)
-        puts "Would you like to (S)ort differently, (F)etch another repo, or (Q)uit?"
-        sort_another = gets.chomp.upcase
-        until sort_another != "S"
-          author_info = sort_repo_contributions(author_info)
-          puts_repo_contributions(author_info)
-          puts "Would you like to (S)ort differently, (F)etch another repo, or (Q)uit?"
-          sort_another = gets.chomp.upcase
-        end
-
+        author_info = sort_repo_contributions(author_info, repo)
+        puts_repo_contributions(author_info, repo)
       end
-
+      puts "That's enough hacking for one day. Get some cough medicine and rest."
     end
 
     private
 
-    def puts_repo_contributions(author_info)
-      puts "\n\nUsername             Additions  Deletions    Changes"
+    def puts_repo_contributions(author_info, repo_name)
+      puts "\n" * 5
+      puts "Reporting for Repo: #{repo_name}"
+      puts "Username             Additions  Deletions    Changes"
       author_info.each do |author|
         printf("%-20s %9d  %9d  %9d \n", author[:author], author[:a], author[:d], author[:c])
       end
     end
 
-    def sort_repo_contributions(author_info)
-      puts "Hacking successful! How would you like to sort the thing?"
+    def sort_repo_contributions(author_info, repo_name)
+      puts "\n" * 5
+      puts "Hacking of #{repo_name} successful! How would you like to sort the thing?"
       puts "(A)dditions, (D)eletions, (C)hanges, or (T)otal commits?"
       sort_by = gets.chomp.downcase.to_sym
       author_info.sort_by{ |a| a[sort_by]}
